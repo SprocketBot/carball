@@ -14,3 +14,7 @@ dist/
 
 !/carball/tests/replays/
 .vscode
+
+carball/generated/binaries/protoc
+env/
+protobuf-3.19.4/

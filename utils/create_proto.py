@@ -56,7 +56,7 @@ def get_deepness(top_level_dir, path_list):
 
 
 def get_file_list(top_level_dir, exclude_dir=None, file_extension='.py'):
-    proto_directories = [x[0] for x in os.walk(get_dir()) if top_level_dir in x[0] and '__pycache__' not in x[0]]
+    proto_directories = [x[0] for x in os.walk(os.getcwd()) if top_level_dir in x[0] and '__pycache__' not in x[0]]
 
     file_result = []
 

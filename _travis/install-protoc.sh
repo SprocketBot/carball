@@ -8,8 +8,8 @@ fi
 
 # Build protoc
 protoc_version=$1
-wget https://github.com/protocolbuffers/protobuf/releases/download/v${protoc_version}/protobuf-${protoc_version}.zip
-unzip protobuf-${protoc_version}.zip
+wget https://github.com/protocolbuffers/protobuf/releases/download/v${protoc_version}/protobuf-python-${protoc_version}.zip
+unzip protobuf-python-${protoc_version}.zip
 cd protobuf-${protoc_version}
 echo "CONFIGURING PROTOBUF"
 ./configure

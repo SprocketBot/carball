@@ -11,12 +11,29 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 bot_map = get_bot_map()
 
+PLATFORMS = {
+    "OnlinePlatform_Steam": "steam",
+    "OnlinePlatform_Dingo": "xbl",
+    "OnlinePlatform_PS4": "psn",
+    "OnlinePlatform_Epic": "epic",
+    "OnlinePlatform_NNX": "switch"
+}
+
+ACTOR_PLATFORMS = {
+    "Steam": "OnlinePlatform_Steam",
+    "Xbox": "OnlinePlatform_Dingo",
+    "PlayStation": "OnlinePlatform_PS4",
+    "Epic": "OnlinePlatform_Epic",
+    "Switch": "OnlinePlatform_NNX"
+}
+
 
 class Player:
 
     def __init__(self):
         self.name = None
         self.online_id = None
+        self.platform = None
         self.team = None  # using team class. set later.
         self.is_orange = None
         self.score = None
@@ -59,11 +76,14 @@ class Player:
         if 'Engine.PlayerReplicationInfo:bBot' in actor_data and actor_data['Engine.PlayerReplicationInfo:bBot']:
             self.is_bot = True
             self.online_id = get_online_id_for_bot(bot_map, self)
+            self.platform = "Bot"
 
         else:
-            actor_type = list(actor_data["Engine.PlayerReplicationInfo:UniqueId"]['remote_id'].keys())[0]
+            actor_type = list(
+                actor_data["Engine.PlayerReplicationInfo:UniqueId"]['remote_id'].keys())[0]
             self.online_id = self._get_player_id(actor_data["Engine.PlayerReplicationInfo:UniqueId"]
                                                  ['remote_id'][actor_type])
+            self.platform = ACTOR_PLATFORMS.get(actor_type)
         try:
             self.score = actor_data["TAGame.PRI_TA:MatchScore"]
         except KeyError:
@@ -90,6 +110,7 @@ class Player:
     def parse_player_stats(self, player_stats: dict):
         self.name = player_stats["Name"]
         self.online_id = player_stats["OnlineID"]
+        self.platform = PLATFORMS.get(player_stats.get("Platform").get("value", None), None)
         self.is_orange = bool(player_stats["Team"])
         self.score = player_stats["Score"]
         self.goals = player_stats["Goals"]
@@ -111,12 +132,15 @@ class Player:
         self.camera_settings['distance'] = camera_data.get('distance', None)
         self.camera_settings['stiffness'] = camera_data.get('stiffness', None)
         self.camera_settings['swivel_speed'] = camera_data.get('swivel', None)
-        self.camera_settings['transition_speed'] = camera_data.get('transition', None)
+        self.camera_settings['transition_speed'] = camera_data.get(
+            'transition', None)
 
         for key, value in self.camera_settings.items():
             if value is None:
-                logger.warning('Could not find ' + key + ' in camera settings for ' + self.name)
-        logger.debug('Camera settings for %s: %s', self.name, self.camera_settings)
+                logger.warning('Could not find ' + key +
+                               ' in camera settings for ' + self.name)
+        logger.debug('Camera settings for %s: %s',
+                     self.name, self.camera_settings)
 
     def parse_actor_data(self, actor_data: dict, objects: List[str]):
         """
@@ -131,7 +155,8 @@ class Player:
         self.party_leader = actor_data.get('TAGame.PRI_TA:PartyLeader', None)
         try:
             if self.party_leader is not None and 'remote_id' in self.party_leader:
-                self.party_leader = str(list(self.party_leader['remote_id'].values())[0])
+                self.party_leader = str(
+                    list(self.party_leader['remote_id'].values())[0])
             else:
                 self.party_leader = None
         except KeyError:
@@ -139,11 +164,13 @@ class Player:
             self.party_leader = None
         self.title = actor_data.get('TAGame.PRI_TA:Title', None)
         self.total_xp = actor_data.get('TAGame.PRI_TA:TotalXP', None)
-        self.steering_sensitivity = actor_data.get('TAGame.PRI_TA:SteeringSensitivity', None)
+        self.steering_sensitivity = actor_data.get(
+            'TAGame.PRI_TA:SteeringSensitivity', None)
         return self
 
     def get_loadout(self, actor_data: dict, objects: List[str]):
-        if "TAGame.PRI_TA:ClientLoadouts" in actor_data:  # new version (2 loadouts)
+        # new version (2 loadouts)
+        if "TAGame.PRI_TA:ClientLoadouts" in actor_data:
             loadout_data = actor_data["TAGame.PRI_TA:ClientLoadouts"]
         else:
             try:
@@ -179,7 +206,8 @@ class Player:
                     'trail', 'goal_explosion', 'banner',
                     'Unknown', 'Unknown', 'Unknown', 'avatar_border'
                 ]
-                for item_name, corresponding_item in zip(items, team_loadout):  # order is based on menu
+                # order is based on menu
+                for item_name, corresponding_item in zip(items, team_loadout):
                     for attribute in corresponding_item:
                         object_name = objects[attribute['object_ind']]
                         if object_name == 'TAGame.ProductAttribute_Painted_TA':
@@ -256,7 +284,11 @@ class Player:
             except IndexError:
                 continue
             # default blue primary = 35, default orange primary = 33, default accent = 0, default glossy = 270
-            loadout['primary_color'] = car_data['team_paint'].get(i, {}).get('primary_color', 35 if i == 0 else 33)
-            loadout['accent_color'] = car_data['team_paint'].get(i, {}).get('accent_color', 0)
-            loadout['primary_finish'] = car_data['team_paint'].get(i, {}).get('primary_finish', 270)
-            loadout['accent_finish'] = car_data['team_paint'].get(i, {}).get('accent_finish', 270)
+            loadout['primary_color'] = car_data['team_paint'].get(
+                i, {}).get('primary_color', 35 if i == 0 else 33)
+            loadout['accent_color'] = car_data['team_paint'].get(
+                i, {}).get('accent_color', 0)
+            loadout['primary_finish'] = car_data['team_paint'].get(
+                i, {}).get('primary_finish', 270)
+            loadout['accent_finish'] = car_data['team_paint'].get(
+                i, {}).get('accent_finish', 270)
