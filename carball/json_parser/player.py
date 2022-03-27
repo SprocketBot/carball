@@ -66,6 +66,10 @@ class Player:
         else:
             return '%s: %s' % (self.__class__.__name__, self.name)
 
+    def get_xbl_id(self, xuid):
+        s = ("00000000" + str(hex(int(xuid)))[2:])[-16:]
+        return s[14:16] + s[12:14] + s[10:12] + s[8:10] + s[6:8] + s[4:6] + s[2:4] + s[0:2]
+
     def _get_player_id(self, online_id):
         if type(online_id) == dict:
             return online_id['online_id']
@@ -83,7 +87,10 @@ class Player:
                 actor_data["Engine.PlayerReplicationInfo:UniqueId"]['remote_id'].keys())[0]
             self.online_id = self._get_player_id(actor_data["Engine.PlayerReplicationInfo:UniqueId"]
                                                  ['remote_id'][actor_type])
-            self.platform = ACTOR_PLATFORMS.get(actor_type)
+            self.platform = PLATFORMS.get(ACTOR_PLATFORMS.get(actor_type))
+
+            if self.platform == 'xbl':
+                self.online_id = self.get_xbl_id(seld.online_id)
         try:
             self.score = actor_data["TAGame.PRI_TA:MatchScore"]
         except KeyError:
@@ -122,6 +129,8 @@ class Player:
         logger.debug('Created Player from stats: %s', self)
         if self.is_bot or self.online_id == '0' or self.online_id == 0:
             self.online_id = get_online_id_for_bot(bot_map, self)
+        elif self.platform == 'xbl':
+            self.online_id = self.get_xbl_id(seld.online_id)
 
         return self
 
