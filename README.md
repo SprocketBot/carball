@@ -37,6 +37,16 @@ cd carball/
 python init.py
 ```
 
+Alternatively, 
+
+```
+git clone https://github.com/SaltieRL/carball
+cd carball/
+./utils/install_protobuf.sh
+python init.py
+sudo python setup.py install
+```
+
 ##### Mac
 In MacOS Catalina, zsh replaced bash as the default shell, which may cause permission issues when trying to run `install-protoc.sh` in the above fashion. Simply invoking bash should resolve this issue, like so:
 ```
