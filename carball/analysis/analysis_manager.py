@@ -1,3 +1,16 @@
+from ..analysis.events.event_creator import EventsCreator
+from ..json_parser.game import Game
+from ..generated.api.player_pb2 import Player
+from ..generated.api import game_pb2
+from ..analysis.utils.proto_manager import ProtobufManager
+from ..analysis.utils.pandas_manager import PandasManager
+from ..analysis.stats.stats_manager import StatsManager
+from ..analysis.saltie_game.saltie_game import SaltieGame
+from ..analysis.saltie_game.metadata.ApiTeam import ApiTeam
+from ..analysis.saltie_game.metadata.ApiPlayer import ApiPlayer
+from ..analysis.saltie_game.metadata.ApiMutators import ApiMutators
+from ..analysis.saltie_game.metadata.ApiGame import ApiGame
+from ..analysis.cleaner.cleaner import clean_replay
 import logging
 import time
 from typing import Dict, Callable, Union
@@ -16,19 +29,6 @@ script_path = os.path.abspath(__file__)
 with open(os.path.join(os.path.dirname(script_path), 'PROTOBUF_VERSION'), 'r') as f:
     PROTOBUF_VERSION = json.loads(f.read())
 
-from ..analysis.cleaner.cleaner import clean_replay
-from ..analysis.saltie_game.metadata.ApiGame import ApiGame
-from ..analysis.saltie_game.metadata.ApiMutators import ApiMutators
-from ..analysis.saltie_game.metadata.ApiPlayer import ApiPlayer
-from ..analysis.saltie_game.metadata.ApiTeam import ApiTeam
-from ..analysis.saltie_game.saltie_game import SaltieGame
-from ..analysis.stats.stats_manager import StatsManager
-from ..analysis.utils.pandas_manager import PandasManager
-from ..analysis.utils.proto_manager import ProtobufManager
-from ..generated.api import game_pb2
-from ..generated.api.player_pb2 import Player
-from ..json_parser.game import Game
-from ..analysis.events.event_creator import EventsCreator
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,8 @@ class AnalysisManager:
         self._log_time("Getting in-game frame-by-frame data...")
         data_frame = self._initialize_data_frame(self.game)
         self._log_time("Getting important frames (kickoff, first-touch)...")
-        kickoff_frames, first_touch_frames = self._get_kickoff_frames(self.game, self.protobuf_game, data_frame)
+        kickoff_frames, first_touch_frames = self._get_kickoff_frames(
+            self.game, self.protobuf_game, data_frame)
         self._log_time("Setting game kickoff frames...")
         self.game.kickoff_frames = kickoff_frames
 
@@ -130,9 +131,11 @@ class AnalysisManager:
         :param file: The file object (or a buffer).
         """
         if isinstance(file.mode, str) and 'b' not in file.mode:
-            raise IOError("Data frame files must be binary use open(path,\"wb\")")
+            raise IOError(
+                "Data frame files must be binary use open(path,\"wb\")")
         if isinstance(file.mode, int) and file.mode != gzip.WRITE:
-            raise IOError("Gzip compressed data frame files must be opened in WRITE mode.")
+            raise IOError(
+                "Gzip compressed data frame files must be opened in WRITE mode.")
         if self.df_bytes is not None:
             file.write(self.df_bytes)
         elif not self.should_store_frames:
@@ -146,7 +149,7 @@ class AnalysisManager:
         fields that match the API.
 
         INFO: The Protocol Buffer is a collection of data organized in a format similar to json. All relevant .proto
-        files found at https://github.com/SaltieRL/carball/tree/master/api.
+        files found at https://github.com/SprocketBot/carball/tree/master/api.
 
         Google's developer guide to protocol buffers may be found at https://developers.google.com/protocol-buffers/docs/overview
         """
@@ -183,7 +186,6 @@ class AnalysisManager:
     def _perform_full_analysis(self, game: Game, proto_game: game_pb2.Game, player_map: Dict[str, Player],
                                data_frame: pd.DataFrame, kickoff_frames: pd.DataFrame, first_touch_frames: pd.Series,
                                calculate_intensive_events: bool = False, clean: bool = True):
-
         """
         Sets some further data and cleans the replay;
         Then, performs the analysis.
@@ -217,10 +219,12 @@ class AnalysisManager:
         :return: A dictionary, with the player's online ID as the key, and the player object (instance of Player) as the value.
         """
         # Process the relevant protobuf data and pass it to the Game object (returned data is ignored).
-        ApiGame.create_from_game(proto_game.game_metadata, game, self.id_creator)
+        ApiGame.create_from_game(
+            proto_game.game_metadata, game, self.id_creator)
 
         # Process the relevant protobuf data and pass it to the Game object's mutators (returned data is ignored).
-        ApiMutators.create_from_game(proto_game.mutators, game, self.id_creator)
+        ApiMutators.create_from_game(
+            proto_game.mutators, game, self.id_creator)
 
         # Process the relevant protobuf data and pass it to the Team objects (returned data is ignored).
         ApiTeam.create_teams_from_game(game, proto_game, self.id_creator)
@@ -245,12 +249,14 @@ class AnalysisManager:
         :param data_frame: The game's pandas.DataFrame object (refer to comment in get_data_frame() for more info).
         """
 
-        protobuf_game.game_metadata.length = data_frame.game[data_frame.game.goal_number.notnull()].delta.sum()
+        protobuf_game.game_metadata.length = data_frame.game[data_frame.game.goal_number.notnull(
+        )].delta.sum()
         for player in protobuf_game.players:
             try:
                 player.time_in_game = data_frame[
                     data_frame[player.name].pos_x.notnull() & data_frame.game.goal_number.notnull()].game.delta.sum()
-                player.first_frame_in_game = data_frame[player.name].pos_x.first_valid_index()
+                player.first_frame_in_game = data_frame[player.name].pos_x.first_valid_index(
+                )
             except:
                 player.time_in_game = 0
 
@@ -278,7 +284,8 @@ class AnalysisManager:
             kickoff_frames = kickoff_frames[:len(first_touch_frames)]
 
         for goal_number, goal in enumerate(game.goals):
-            data_frame.loc[kickoff_frames[goal_number]: goal.frame_number, ('game', 'goal_number')] = goal_number
+            data_frame.loc[kickoff_frames[goal_number]
+                : goal.frame_number, ('game', 'goal_number')] = goal_number
 
         # Set goal_number of frames that are post last kickoff to -1 (ie non None)
         if len(kickoff_frames) > len(proto_game.game_metadata.goals):
@@ -304,7 +311,8 @@ class AnalysisManager:
         """
 
         goal_frames = data_frame.game.goal_number.notnull()
-        self.stats_manager.get_stats(game, proto_game, player_map, data_frame[goal_frames])
+        self.stats_manager.get_stats(
+            game, proto_game, player_map, data_frame[goal_frames])
 
     def _store_frames(self, data_frame: pd.DataFrame):
         self.data_frame = data_frame
@@ -363,5 +371,6 @@ class AnalysisManager:
 
     def _log_time(self, message=""):
         end = time.time()
-        logger.info("Time taken for %s is %s milliseconds", message, (end - self.timer) * 1000)
+        logger.info("Time taken for %s is %s milliseconds",
+                    message, (end - self.timer) * 1000)
         self.timer = end

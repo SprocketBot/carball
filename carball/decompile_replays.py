@@ -1,6 +1,6 @@
 import logging
 import os
-from boxcars_py import parse_replay
+from sprocket_boxcars_py import parse_replay
 
 from carball.analysis.analysis_manager import AnalysisManager
 from carball.controls.controls import ControlsCreator
@@ -55,7 +55,8 @@ def analyze_replay_file(replay_path: str, controls: ControlsCreator = None,
         analysis = PerGoalAnalysis(game)
     else:
         analysis = AnalysisManager(game)
-    analysis.create_analysis(calculate_intensive_events=calculate_intensive_events, clean=clean)
+    analysis.create_analysis(
+        calculate_intensive_events=calculate_intensive_events, clean=clean)
 
     if controls is not None:
         controls.get_controls(game)

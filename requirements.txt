@@ -2,5 +2,5 @@ numpy
 protobuf
 pandas
 xlrd==1.1.0
-boxcars-py==0.1.*
+sprocket-boxcars-py
 openpyxl

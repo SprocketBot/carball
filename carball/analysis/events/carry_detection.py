@@ -171,7 +171,7 @@ class CarryDetection:
                     has_flicked = dodge_data.where(dodge_data % 2 == 1).last_valid_index()
                     if has_flicked is not None:
                         ending = min(max(last_player_hit.frame_number + 10, end_frames[carry_index]), has_flicked + 20)
-                        is_going_up = carry_frames.ball.pos_z[last_player_hit.frame_number:ending].is_monotonic
+                        is_going_up = carry_frames.ball.pos_z[last_player_hit.frame_number:ending].is_monotonic_increasing
                         end_frames[carry_index] = has_flicked
                         if is_going_up:
                             player_carry_data.add_flick(carry_index, True)

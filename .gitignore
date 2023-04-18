@@ -9,8 +9,10 @@ output
 *.iml
 build/
 carball.egg*
+sprocket_carball.egg*
 dist/
 *ipynb*
+*protobuf-*
 
 !/carball/tests/replays/
 .vscode
