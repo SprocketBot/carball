@@ -9,7 +9,8 @@ class ApiPlayer:
 
     @staticmethod
     def create_from_player(proto_player: player_pb2.Player, player: Player, id_creator: Callable):
-        ApiPlayerCameraSettings.create_from_player(proto_player.camera_settings, player)
+        ApiPlayerCameraSettings.create_from_player(
+            proto_player.camera_settings, player)
         ApiPlayerLoadout.create_from_player(proto_player.loadout, player)
 
         id_creator(proto_player.id, player.name)
@@ -33,5 +34,7 @@ class ApiPlayer:
             proto_player.party_leader.id = player.party_leader
         if player.is_bot is not None:
             proto_player.is_bot = player.is_bot
+        if player.platform is not None:
+            proto_player.platform = player.platform
 
         return proto_player
