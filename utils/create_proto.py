@@ -79,6 +79,10 @@ def get_file_list(top_level_dir, exclude_dir=None, file_extension='.py'):
 
 def create_proto_files():
     print('###CREATING PROTO FILES###')
+
+    # Ensure the output directory exists
+    os.makedirs(proto_dir, exist_ok=True)
+
     file_list = get_file_list(top_level_dir='api', file_extension='.proto')
     for file in file_list:
         path = file[0]
