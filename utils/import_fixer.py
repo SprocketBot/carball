@@ -5,6 +5,7 @@ from tempfile import mkstemp
 from .create_proto import get_file_list, get_dir
 
 import_statement = 'import '
+from_import_statement = 'from '
 
 
 def analyze_file(deepness, file_path, top_level_import):
@@ -17,7 +18,33 @@ def analyze_file(deepness, file_path, top_level_import):
             for i in range(len(lines)):
                 line = lines[i]
                 extra_cases = '.' in line and top_level_import in line and not (import_statement + '.') in line
-                if line.startswith(import_statement) and extra_cases:
+
+                # Handle "from api.X.Y import Z" or "from api import X" style imports
+                if line.startswith(from_import_statement) and top_level_import in line and ' import ' in line:
+                    # Extract the module path (e.g., "api.stats" from "from api.stats import stats_pb2 as ...")
+                    parts = line.split(' import ')
+                    if len(parts) == 2:
+                        from_part = parts[0][len(from_import_statement):].strip()
+                        import_part = parts[1].strip()
+
+                        # Only process if it starts with our top_level_import
+                        if from_part.startswith(top_level_import):
+                            # Count the depth (number of dots in the current file path)
+                            # from_part could be "api" or "api.stats" or "api.stats.foo"
+                            # We need to convert to relative imports
+
+                            if from_part == top_level_import:
+                                # "from api import X" -> "from ... import X" (up to parent of parent)
+                                line = 'from ' + '.' * deepness + ' import ' + import_part + '\n'
+                                modified = True
+                            elif from_part.startswith(top_level_import + '.'):
+                                # "from api.stats import X" -> "from ..stats import X"
+                                subpath = from_part[len(top_level_import) + 1:]  # Remove "api."
+                                line = 'from ' + '.' * deepness + subpath + ' import ' + import_part + '\n'
+                                modified = True
+
+                # Handle "import api.X" style imports
+                elif line.startswith(import_statement) and extra_cases:
                     cut_line = line[len(import_statement):].rstrip()
                     ending_string = cut_line[cut_line.rfind('.') + 1:]
                     replace_map[cut_line] = ending_string
