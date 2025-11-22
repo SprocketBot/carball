@@ -29,18 +29,35 @@ def analyze_file(deepness, file_path, top_level_import):
 
                         # Only process if it starts with our top_level_import
                         if from_part.startswith(top_level_import):
-                            # Count the depth (number of dots in the current file path)
-                            # from_part could be "api" or "api.stats" or "api.stats.foo"
-                            # We need to convert to relative imports
+                            # The file is at depth 'deepness' from 'generated' directory
+                            # e.g., for generated/api/stats/events_pb2.py, deepness=3 (generated, api, stats)
+                            #
+                            # For "from api import X":
+                            #   - We need to go up (deepness-1) to get to 'generated'
+                            #   - Then go into 'api' to find X
+                            #   - Result: "from ..api import X" (for deepness=3)
+                            #
+                            # For "from api.stats import X":
+                            #   - We need to go up (deepness-1) to get to 'generated'
+                            #   - Then go into 'api/stats' to find X
+                            #   - Result: "from ..api.stats import X" (for deepness=3)
 
                             if from_part == top_level_import:
-                                # "from api import X" -> "from ... import X" (up to parent of parent)
-                                line = 'from ' + '.' * deepness + ' import ' + import_part + '\n'
+                                # "from api import X" -> "from ..api import X"
+                                # Go up (deepness-1) levels, then into top_level_import
+                                dots = '.' * (deepness - 1)
+                                line = 'from ' + dots + top_level_import + ' import ' + import_part + '\n'
                                 modified = True
                             elif from_part.startswith(top_level_import + '.'):
-                                # "from api.stats import X" -> "from ..stats import X"
+                                # "from api.stats import X" -> "from ..api.stats import X" or "from . import X"
+                                # Check if the subpath matches our current directory
                                 subpath = from_part[len(top_level_import) + 1:]  # Remove "api."
-                                line = 'from ' + '.' * deepness + subpath + ' import ' + import_part + '\n'
+
+                                # For deepness=3, we're in api/stats/
+                                # If importing from api.stats, that's our current dir, use "."
+                                # If importing from api.metadata, use "../api/metadata"
+                                dots = '.' * (deepness - 1)
+                                line = 'from ' + dots + from_part + ' import ' + import_part + '\n'
                                 modified = True
 
                 # Handle "import api.X" style imports
