@@ -19,96 +19,45 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }} - ${{ matrix.arch }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          # Linux x86_64
-          - os: ubuntu-latest
-            arch: x86_64
-            platform_id: manylinux_x86_64
-          # Linux ARM64
-          - os: ubuntu-latest
-            arch: aarch64
-            platform_id: manylinux_aarch64
-          # macOS x86_64
-          - os: macos-15
-            arch: x86_64
-            platform_id: macosx_x86_64
-          # macOS ARM64 (Apple Silicon)
-          - os: macos-14
-            arch: arm64
-            platform_id: macosx_arm64
-          # Windows x86_64
-          - os: windows-latest
-            arch: AMD64
-            platform_id: win_amd64
-          # Windows ARM64
-          - os: windows-latest
-            arch: ARM64
-            platform_id: win_arm64
+    name: Build universal Python wheel
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up QEMU (for ARM builds on Linux)
-      if: runner.os == 'Linux' && matrix.arch == 'aarch64'
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: arm64
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Install cibuildwheel
-      run: python -m pip install cibuildwheel==2.16.2
+    - name: Install protobuf compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget unzip
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip
+        sudo unzip protoc-3.6.1-linux-x86_64.zip -d /usr/local
+        protoc --version
 
-    - name: Build wheels
-      env:
-        CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-*
-        CIBW_SKIP: "*-musllinux_* pp*"
-        CIBW_ARCHS: ${{ matrix.arch }}
-        CIBW_BUILD_VERBOSITY: 1
-        # Install protobuf compiler before building
-        CIBW_BEFORE_ALL_LINUX: |
-          # Fix CentOS 7 EOL mirror issues by using vault
-          if command -v yum &> /dev/null; then
-            sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* || true
-            sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* || true
-            yum install -y wget unzip
-          else
-            apt-get update && apt-get install -y wget unzip
-          fi
-          # Download and install protoc for the appropriate architecture
-          ARCH=$(uname -m)
-          if [ "$ARCH" = "aarch64" ]; then
-            PROTOC_ARCH="aarch_64"
-          else
-            PROTOC_ARCH="x86_64"
-          fi
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-${PROTOC_ARCH}.zip
-          unzip protoc-3.6.1-linux-${PROTOC_ARCH}.zip -d /usr/local
-        CIBW_BEFORE_ALL_MACOS: |
-          brew install protobuf@3 || true
-        CIBW_BEFORE_ALL_WINDOWS: |
-          choco install protoc --version=3.6.1 -y
-        # Run init.py to generate proto files during wheel build
-        CIBW_BEFORE_BUILD: |
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install numpy protobuf==3.6.1 pandas sprocket-boxcars-py openpyxl
-          python init.py
-        # Test that the wheel works
-        CIBW_TEST_REQUIRES: pytest
-        CIBW_TEST_COMMAND: python -c "import carball; print('Import successful')"
-      run: python -m cibuildwheel --output-dir wheelhouse
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install numpy protobuf==3.6.1 pandas sprocket-boxcars-py openpyxl
+
+    - name: Initialize project
+      run: python init.py
+
+    - name: Build wheel
+      run: python -m pip wheel -w wheelhouse --no-deps .
+
+    - name: Test wheel installation
+      run: |
+        pip install wheelhouse/*.whl
+        python -c "import carball; print('Import successful')"
 
     - name: Upload wheels as artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: wheels-${{ matrix.platform_id }}
+        name: wheels
         path: ./wheelhouse/*.whl
         retention-days: 7
 
