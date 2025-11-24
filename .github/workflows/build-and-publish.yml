@@ -15,7 +15,7 @@ on:
       publish:
         description: 'Publish to PyPI (yes/no)'
         required: true
-        default: 'no'
+        default: 'yes'
 
 jobs:
   build_wheels:
