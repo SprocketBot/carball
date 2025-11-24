@@ -39,7 +39,7 @@ setup(
     version='0.9.1',
     packages=setuptools.find_packages(),
     include_package_data=True,
-    install_requires=['pandas', 'protobuf>=3.20.0,<5.0.0',
+    install_requires=['pandas', 'protobuf>=5.29.3',
                       'openpyxl', 'numpy', 'sprocket-boxcars-py'],
     url='https://github.com/SprocketBot/carball',
     keywords=['rocket-league'],
