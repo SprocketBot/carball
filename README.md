@@ -4,70 +4,11 @@ decompiling Rocket League replays and then analysing them. It is a fork of
 [SaltieRL's carball](https://github.com/SaltieRL/carball) project, which 
 appears to no longer be maintained. 
 
-## Requirements
-
-- Python 3.6.7+ (3.7 and 3.8 included)
-- Windows, Mac or Linux
-
 ## Install
 
 #### Install from pip:
 
 `pip install sprocket_carball`
-
-#### Clone for development
-
-##### Windows
-```
-git clone https://github.com/SprocketBot/carball
-cd carball/
-python init.py
-```
-
-##### Linux
-```
-git clone https://github.com/SprocketBot/carball
-cd carball/
-./_travis/install-protoc.sh
-python init.py
-```
-
-Alternatively, 
-
-```
-git clone https://github.com/SprocketBot/carball
-cd carball/
-./utils/install_protobuf.sh
-python init.py
-sudo python setup.py install
-```
-
-Finally, to publish the package on PyPI
-
-```
-python setup.py sdist
-twine upload dist/*
-```
-
-To actually *use* the package as writ (until we get the protobuf version that we
-use for generating the pb2 files updated), you'll need to set this environment
-variable:
-
-```
-export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
-```
-
-
-##### Mac
-In MacOS Catalina, zsh replaced bash as the default shell, which may cause permission issues when trying to run `install-protoc.sh` in the above fashion. Simply invoking bash should resolve this issue, like so:
-```
-git clone https://github.com/SprocketBot/carball
-cd carball/
-bash ./_travis/install-protoc.sh
-python init.py
-```
-Apple's decision to replace bash as the default shell may foreshadow the removal of bash in a future version of MacOS. In such a case, Homebrew users can [install protoc](http://google.github.io/proto-lens/installing-protoc.html) by replacing `bash ./travis/install-protoc.sh` with `brew install protobuf`.
-
 
 ## Examples / Usage
 One of the main data structures used in carball is the pandas.DataFrame, to learn more, see [its wiki page](https://github.com/SaltieRL/carball/wiki/data_frame).
