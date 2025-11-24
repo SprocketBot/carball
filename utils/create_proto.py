@@ -65,7 +65,11 @@ def get_file_list(top_level_dir, exclude_dir=None, file_extension='.py'):
         if exclude_dir is not None and exclude_dir in path:
             continue
         path_list = split_to_list(path)
-        deepness = get_deepness(top_level_dir, path_list)
+        try:
+            deepness = get_deepness(top_level_dir, path_list)
+        except ValueError:
+            print(f"Skipping {path} because {top_level_dir} is not in {path_list}")
+            continue
         left_over_paths = path_list[-deepness:]
         path_lists.append((path, deepness, left_over_paths))
     for path_item in path_lists:

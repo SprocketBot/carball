@@ -2,7 +2,10 @@ import os
 import shutil
 from tempfile import mkstemp
 
-from .create_proto import get_file_list, get_dir
+try:
+    from .create_proto import get_file_list, get_dir
+except ImportError:
+    from create_proto import get_file_list, get_dir
 
 import_statement = 'import '
 from_import_statement = 'from '
