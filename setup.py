@@ -36,7 +36,7 @@ class PostInstallCommand(install):
 
 setup(
     name='sprocket_carball',
-    version='0.9.2',
+    version='0.9.3',
     packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=['pandas', 'protobuf>=5.29.3',
