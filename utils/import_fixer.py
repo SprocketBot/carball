@@ -48,7 +48,7 @@ def analyze_file(deepness, file_path, top_level_import):
                             if from_part == top_level_import:
                                 # "from api import X" -> "from ..api import X"
                                 # Go up (deepness-1) levels, then into top_level_import
-                                dots = '.' * (deepness - 1)
+                                dots = '.' * (deepness)
                                 line = 'from ' + dots + top_level_import + ' import ' + import_part + '\n'
                                 modified = True
                             elif from_part.startswith(top_level_import + '.'):
@@ -59,7 +59,7 @@ def analyze_file(deepness, file_path, top_level_import):
                                 # For deepness=3, we're in api/stats/
                                 # If importing from api.stats, that's our current dir, use "."
                                 # If importing from api.metadata, use "../api/metadata"
-                                dots = '.' * (deepness - 1)
+                                dots = '.' * (deepness)
                                 line = 'from ' + dots + from_part + ' import ' + import_part + '\n'
                                 modified = True
 

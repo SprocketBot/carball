@@ -21,7 +21,7 @@ import os
 import gzip
 
 from google.protobuf.json_format import _Printer
-from typing.io import IO
+from typing import IO
 
 from .utils.json_encoder import CarballJsonEncoder
 
