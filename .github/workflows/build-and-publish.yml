@@ -106,10 +106,6 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    # Only publish on releases or manual workflow dispatch with 'yes'
-    if: |
-      github.event_name == 'release' ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'yes')
     environment:
       name: pypi
       url: https://pypi.org/p/sprocket-carball
