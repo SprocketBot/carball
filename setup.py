@@ -22,7 +22,7 @@ else:
 
 setup(
     name='sprocket_carball',
-    version='1.0.0',
+    version='1.1.0',
     packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=['pandas', 'protobuf>=5.29.3,<6.0.0',
