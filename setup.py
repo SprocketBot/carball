@@ -4,6 +4,12 @@ import os
 import setuptools
 from setuptools import setup
 
+try:
+    import init
+    init.initialize_project()
+except Exception as e:
+    print("Warning: Could not generate protocol buffers:", e)
+
 
 if os.path.isfile('README.md'):
     with open("README.md", "r") as readme_file:
