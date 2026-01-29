@@ -1,5 +1,5 @@
 numpy
-protobuf
+protobuf<6.0.0
 pandas
-sprocket-boxcars-py
+sprocket-boxcars-py>=0.3.17
 openpyxl
